@@ -633,21 +633,21 @@ give lrc file with lyrics time stamp, and it would give us time stamp and lyrics
 
 
 """Main code"""
-# import re
-# import textwrap
-# from moviepy import VideoFileClip, AudioFileClip, TextClip, CompositeVideoClip
-#
-# """Add music to video file as in merging both of them together"""
-#
-# # Add type hints
-# video: VideoFileClip = VideoFileClip("dirfile/video_without_music.mp4")
-# audio: AudioFileClip = AudioFileClip("dirfile/music_file.mp3")
-#
-# # Set audio to video
-# video = video.with_audio(audio)
-#
-# # Save the final video
-# video.write_videofile("output_video.mp4")
+import re
+import textwrap
+from moviepy import VideoFileClip, AudioFileClip, TextClip, CompositeVideoClip
+
+"""Add music to video file as in merging both of them together"""
+
+# Add type hints
+video: VideoFileClip = VideoFileClip("dirfile/video_without_music.mp4")
+audio: AudioFileClip = AudioFileClip("dirfile/music_file.mp3")
+
+# Set audio to video
+video = video.with_audio(audio)
+
+# Save the final video
+video.write_videofile("output_video.mp4")
 
 # def parse_lrc_file(lrc_file):
 #     lyrics_with_timestamps = []
@@ -828,7 +828,9 @@ def create_lyrics_video(video_file, lrc_file, output_file):
         wrapped_text, len_line = wrap_text(lyric, max_chars_per_line=29)
 
         # Center y-position for the current lyric
-        y_position_center = (screen_height / 2) - (text_height * len_line / 2)   # Adjusted for top buffer
+        y_position_center = (screen_height / 2) - (text_height / 2)   # Adjusted for top buffer
+        if len_line > 2:
+            text_height = text_height + (20 * len_line)
 
 
         # Add the current lyric with a highlighted style
@@ -840,7 +842,7 @@ def create_lyrics_video(video_file, lrc_file, output_file):
             font_size=90,
             horizontal_align='center',
             vertical_align='center',
-            size=(screen_width, line_height * len_line),
+            size=(screen_width, text_height),
             # bg_color="red",  # Temporary background to visualize text bounds
             # transparent=False  # Disable transparency for debugging
         ).with_position(("center", y_position_center)).with_start(start_time).with_end(end_time)
@@ -851,8 +853,13 @@ def create_lyrics_video(video_file, lrc_file, output_file):
         # Add previous and future lines with dimmed styles
         for j in range(max(0, i - 3), min(len(lyrics_with_timestamps), i + 4)):
             if j != i:  # Skip the current lyric since it's already added
+                prev_wrapped_text, prev_len_line = wrap_text(lyrics_with_timestamps[j][1], max_chars_per_line=29)
                 lines_away = j - i  # How many lines away from current
-                offset = lines_away * line_height  # Use line_height for spacing
+                if prev_len_line > 2:
+                    offset = lines_away * line_height + (3 * prev_len_line)  # Use line_height for spacing
+                    text_height = text_height + (3 * prev_len_line)
+                else:
+                    offset = lines_away * line_height  # Use line_height for spacing
                 y_position = y_position_center + offset
 
                 # Ensure the y_position is within the visible area
@@ -862,7 +869,6 @@ def create_lyrics_video(video_file, lrc_file, output_file):
                 # Determine the color for past (light gray) and future (gray) lines
                 color = "gray" if j > i else "gray"
 
-                prev_wrapped_text, prev_len_line = wrap_text(lyrics_with_timestamps[j][1], max_chars_per_line=29)
 
                 # Create the clip for the previous or future line
                 previous_clip = TextClip(
@@ -873,7 +879,7 @@ def create_lyrics_video(video_file, lrc_file, output_file):
                     font_size=90, # Limit the width to 80% of the screen width
                     horizontal_align='center',
                     vertical_align='center',
-                    size=(screen_width, line_height * prev_len_line),
+                    size=(screen_width, text_height),
                     # bg_color="red",  # Temporary background to visualize text bounds
                     # transparent=False  # Disable transparency for debugging
                 ).with_position(("center", y_position)).with_start(start_time).with_end(end_time)
