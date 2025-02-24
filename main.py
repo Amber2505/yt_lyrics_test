@@ -901,18 +901,46 @@ give lrc file with lyrics time stamp, and it would give us time stamp and lyrics
 import re
 import textwrap
 from moviepy import VideoFileClip, AudioFileClip, TextClip, CompositeVideoClip
+import os
+from datetime import datetime
+import shutil
+
+song_name = ''
+current_song_folder_name_created = ''
 
 """Add music to video file as in merging both of them together"""
 
-# Add type hints
-video: VideoFileClip = VideoFileClip("dirfile/video_without_music.mp4")
-audio: AudioFileClip = AudioFileClip("dirfile/music_file.mp3")
+def video_audio_merge(video_clip_path, audio_clip_path):
+    video: VideoFileClip = VideoFileClip(video_clip_path)
+    audio: AudioFileClip = AudioFileClip(audio_clip_path)
 
-# Set audio to video
-video = video.with_audio(audio)
+    # Set audio to video
+    video = video.with_audio(audio)
 
-# Save the final video
-video.write_videofile("output_video.mp4")
+    # Save the final video
+    video.write_videofile("output_video.mp4")
+
+
+def folder_creation_with_song_name(song_name):
+    # Define the final folder inside 'video_final_output/'
+    base_folder = "video_final_output"
+    folder_name = os.path.join(base_folder, song_name)
+
+    # Ensure 'video_final_output/' exists
+    os.makedirs(base_folder, exist_ok=True)
+
+    # Check if the folder already exists
+    if os.path.exists(folder_name):
+        # Generate a timestamped backup name
+        new_name = f"{folder_name}_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        os.rename(folder_name, new_name)  # Rename the existing folder
+        print(f"Existing folder renamed to '{new_name}'")
+
+    # Create a new fresh folder
+    os.makedirs(folder_name)
+    print(f"New folder '{folder_name}' created successfully!")
+
+    return folder_name  # Return the new folder path
 
 
 def parse_lrc_file(lrc_file):
@@ -925,6 +953,7 @@ def parse_lrc_file(lrc_file):
                 matches = re.findall(r"\[(\d{2}:\d{2}\.\d{2,3})](.*)", line) # Find all matches
                 for timestamp, lyric in matches: # Iterate over all matches on the current line
                     lyrics_with_timestamps.append((timestamp, lyric.strip()))
+
     except FileNotFoundError:
         print(f"Error: File not found at {lrc_file}")
         return None
@@ -945,9 +974,12 @@ def wrap_text(text, max_chars_per_line=29):
     return centered_text, len(wrapped_lines)  # Return wrapped text & number of lines
 
 def create_lyrics_video(video_file, lrc_file, output_file):
+    # Define the output file path inside the created folder
+    output_file = os.path.join(output_file)
     """
     Creates a video with scrolling lyrics from an LRC file.
     """
+
     lyrics_with_timestamps = parse_lrc_file(lrc_file)
     clip = VideoFileClip(video_file).resized((1920, 1080))  # Ensure the background fits the screen dimensions
 
@@ -1027,5 +1059,65 @@ def create_lyrics_video(video_file, lrc_file, output_file):
     # Export the final video
     final_video.write_videofile(output_file, fps=24)
 
+def copying_raw_file(song_name):
+    source_files = [
+        "lyrics_with_ts.lrc",
+        "music_file.mp3",
+        "video_without_music.mp4"
+    ]
+
+    destination_files = [
+        f"{song_name}.lrc",
+        f"{song_name}.mp3",
+        f"{song_name}_without_audio.mp4"
+    ]
+
+    # Define source and destination directories
+    source_folder = "dirfile/"
+    destination_folder = f"video_final_output/{song_name}"
+
+    # Ensure the destination folder exists
+    os.makedirs(destination_folder, exist_ok=True)
+
+    # Loop through both lists simultaneously
+    for src_file, dest_file in zip(source_files, destination_files):
+        source_path = os.path.join(source_folder, src_file)
+        destination_path = os.path.join(destination_folder, dest_file)
+
+        if os.path.exists(source_path):  # Check if source file exists
+            # If destination file already exists, rename it with a timestamp
+            if os.path.exists(destination_path):
+                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')  # Format: YYYYMMDD_HHMMSS
+                name, ext = os.path.splitext(dest_file)  # Split name and extension
+                destination_path = os.path.join(destination_folder, f"{name}_{timestamp}{ext}")
+
+            # Copy the file to the destination
+            shutil.copy(source_path, destination_path)
+            print(f"Copied '{source_path}' to '{destination_path}'")
+        else:
+            print(f"Warning: Source file '{source_path}' does not exist!")
+
+    print("All files processed successfully!")
+
+
+def song_title(directory_passed):
+    with open(directory_passed, 'r', encoding='utf-8-sig') as file:
+        for line in file:
+            # print(line)
+            title = line.split(']')[-1].strip()
+            return title
+
+def create_blank_mp4(output_path):
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+
+    # Create the empty file
+    with open(output_path, "wb") as f:
+        pass
+
 # Example usage
-create_lyrics_video("output_video.mp4", "dirfile/lyrics_with_ts.lrc", "result.mp4")
+song_title_created = song_title('dirfile/lyrics_with_ts.lrc')
+video_audio_merge("dirfile/video_without_music.mp4", "dirfile/music_file.mp3")
+folder_creation_with_song_name(str(song_title_created))
+create_blank_mp4(f"video_final_output/{song_title_created}/{song_title_created}.mp4")
+create_lyrics_video("output_video.mp4", "dirfile/lyrics_with_ts.lrc", f"video_final_output/{song_title_created}/{song_title_created}.mp4")
+copying_raw_file(song_title_created)
