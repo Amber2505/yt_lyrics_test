@@ -1078,7 +1078,9 @@ def create_lyrics_video(video_file, lrc_file, output_file):
 
         # Add past lines (above the current line)
         past_y = current_y
-        for j in range(i - 1, max(0, i - 4), -1):
+        for j in range(i - 1, max(-1, i - 4 - 1), -1):  # Adjusted range
+            if j < 0:  # Skip if index is invalid
+                continue
             past_wrapped, past_line_count = wrap_text(lyrics_with_timestamps[j][1], max_chars_per_line=max_chars)
             past_height = past_line_count * line_spacing
 
@@ -1217,6 +1219,6 @@ song_title_created = song_title('dirfile/lyrics_with_ts.lrc')
 video_audio_merge("dirfile/video_without_music.mp4", "dirfile/music_file.mp3")
 folder_creation_with_song_name(str(song_title_created))
 create_blank_mp4(f"video_final_output/{song_title_created}/{song_title_created}.mp4")
-create_lyrics_video_singular("output_video.mp4", "dirfile/lyrics_with_ts.lrc", f"video_final_output/{song_title_created}/{song_title_created}singular.mp4")
+# create_lyrics_video_singular("output_video.mp4", "dirfile/lyrics_with_ts.lrc", f"video_final_output/{song_title_created}/{song_title_created}singular.mp4")
 create_lyrics_video("output_video.mp4", "dirfile/lyrics_with_ts.lrc", f"video_final_output/{song_title_created}/{song_title_created}.mp4")
 copying_raw_file(song_title_created)
