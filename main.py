@@ -904,6 +904,8 @@ from moviepy import VideoFileClip, AudioFileClip, TextClip, CompositeVideoClip
 import os
 from datetime import datetime
 import shutil
+from mutagen.mp3 import MP3
+from mutagen.wave import WAVE
 
 song_name = ''
 current_song_folder_name_created = ''
@@ -973,6 +975,20 @@ def wrap_text(text, max_chars_per_line=29):
     centered_text = "\n".join(line.center(max_length) for line in wrapped_lines)  # Center each line
     return centered_text, len(wrapped_lines)  # Return wrapped text & number of lines
 
+def get_audio_length(file_path):
+    try:
+        if file_path.lower().endswith('.mp3'):
+            audio = MP3(file_path)
+        elif file_path.lower().endswith('.wav'):
+            audio = WAVE(file_path)
+        else:
+            return "Unsupported file format"
+        length_music = audio.info.length  # Returns duration in seconds
+        total_music_seconds = round(length_music)
+        return total_music_seconds
+    except Exception as e:
+        return f"Error: {str(e)}"
+
 def create_lyrics_video_singular(video_file, lrc_file, output_file):
     # Define the output file path inside the created folder
     output_file = os.path.join(output_file)
@@ -994,7 +1010,7 @@ def create_lyrics_video_singular(video_file, lrc_file, output_file):
         end_time = (
             timestamp_to_seconds(lyrics_with_timestamps[i + 1][0])
             if i + 1 < len(lyrics_with_timestamps)
-            else start_time + 5 #end time this when the lyrics would disappear if no other line is given (lik the last line)
+            else start_time + (get_audio_length('dirfile/music_file.mp3') - start_time) #end time this when the lyrics would disappear if no other line is given at the end of the video (lik the last line)
         )
 
         # Calculate the height for the current line
@@ -1052,7 +1068,7 @@ def create_lyrics_video(video_file, lrc_file, output_file):
         end_time = (
             timestamp_to_seconds(lyrics_with_timestamps[i + 1][0])
             if i + 1 < len(lyrics_with_timestamps)
-            else start_time + 5
+            else start_time + (get_audio_length('dirfile/music_file.mp3') - start_time) #end time this when the lyrics would disappear if no other line is given at the end of the video (lik the last line)
         )
 
         # Process current line first
@@ -1126,7 +1142,7 @@ def create_lyrics_video(video_file, lrc_file, output_file):
 
         # Add future lines (below the current line)
         future_y = current_y + current_height
-        for j in range(i + 1, min(len(lyrics_with_timestamps), i + 3)):
+        for j in range(i + 1, min(len(lyrics_with_timestamps), i + 4)):
             future_wrapped, future_line_count = wrap_text(lyrics_with_timestamps[j][1], max_chars_per_line=max_chars)
             future_height = future_line_count * line_spacing
 
@@ -1219,6 +1235,6 @@ song_title_created = song_title('dirfile/lyrics_with_ts.lrc')
 video_audio_merge("dirfile/video_without_music.mp4", "dirfile/music_file.mp3")
 folder_creation_with_song_name(str(song_title_created))
 create_blank_mp4(f"video_final_output/{song_title_created}/{song_title_created}.mp4")
-# create_lyrics_video_singular("output_video.mp4", "dirfile/lyrics_with_ts.lrc", f"video_final_output/{song_title_created}/{song_title_created}singular.mp4")
+create_lyrics_video_singular("output_video.mp4", "dirfile/lyrics_with_ts.lrc", f"video_final_output/{song_title_created}/{song_title_created}singular.mp4")
 create_lyrics_video("output_video.mp4", "dirfile/lyrics_with_ts.lrc", f"video_final_output/{song_title_created}/{song_title_created}.mp4")
 copying_raw_file(song_title_created)
