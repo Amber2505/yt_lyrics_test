@@ -94,31 +94,22 @@ def get_audio_length(file_path):
 # create_video_from_image("dirfile/image_background.jpg", "output.mp4", duration=60)
 
 
-from moviepy import ImageClip, ColorClip, CompositeVideoClip
-
-def create_video_from_image(image_path, output_path, duration=5, resolution=(1920, 1080), fps=30):
-    """
-    Creates a 1920x1080 video from an image with a semi-transparent black rectangle overlay.
-
-    :param image_path: Path to the input image (JPEG or other format).
-    :param output_path: Path to save the output video (MP4 format).
-    :param duration: Duration of the video in seconds (default: 5).
-    :param resolution: Tuple for video resolution (default: 1920x1080).
-    :param fps: Frames per second (default: 30).
-    """
-    # Load the image and resize it to fit the resolution
-    image_clip = ImageClip(image_path).resized(resolution).with_duration(duration)
-
-    # Create a black rectangle with the same resolution and 40% transparency (alpha=0.4)
-    black_overlay = ColorClip(size=resolution, color=(0, 0, 0)).with_duration(duration).with_opacity(0.4)
-
-    # Composite the image and the black overlay
-    final_clip = CompositeVideoClip([image_clip, black_overlay])
-
-    # Write the video file
-    final_clip.write_videofile(output_path, fps=fps, codec="libx264", audio=False)
-
-    print(f"Video saved at {output_path}")
+# from moviepy import ImageClip, ColorClip, CompositeVideoClip
+#
+# def create_video_from_image(image_path, output_path, duration=5, resolution=(1920, 1080), fps=30):
+#     # Load the image and resize it to fit the resolution
+#     image_clip = ImageClip(image_path).resized(resolution).with_duration(duration)
+#
+#     # Create a black rectangle with the same resolution and 40% transparency (alpha=0.4)
+#     black_overlay = ColorClip(size=resolution, color=(0, 0, 0)).with_duration(duration).with_opacity(0.4)
+#
+#     # Composite the image and the black overlay
+#     final_clip = CompositeVideoClip([image_clip, black_overlay])
+#
+#     # Write the video file
+#     final_clip.write_videofile(output_path, fps=fps, codec="libx264", audio=False)
+#
+#     print(f"Video saved at {output_path}")
 
 # Example Usage
-create_video_from_image("dirfile/image_background.jpg", "dirfile/video_without_music.mp4", duration=get_audio_length("dirfile/music_test.mp3"))
+# create_video_from_image("dirfile/image_background.jpg", "dirfile/video_without_music.mp4", duration=get_audio_length("dirfile/music_file.mp3"))

@@ -900,7 +900,7 @@ give lrc file with lyrics time stamp, and it would give us time stamp and lyrics
 
 import re
 import textwrap
-from moviepy import VideoFileClip, AudioFileClip, TextClip, CompositeVideoClip
+from moviepy import VideoFileClip, AudioFileClip, TextClip, CompositeVideoClip, ColorClip, ImageClip
 import os
 from datetime import datetime
 import shutil
@@ -1230,8 +1230,24 @@ def create_blank_mp4(output_path):
     with open(output_path, "wb") as f:
         pass
 
+def create_video_from_image(image_path, output_path, duration=5, resolution=(1920, 1080), fps=30):
+    # Load the image and resize it to fit the resolution
+    image_clip = ImageClip(image_path).resized(resolution).with_duration(duration)
+
+    # Create a black rectangle with the same resolution and 40% transparency (alpha=0.4)
+    black_overlay = ColorClip(size=resolution, color=(0, 0, 0)).with_duration(duration).with_opacity(0.4)
+
+    # Composite the image and the black overlay
+    final_clip = CompositeVideoClip([image_clip, black_overlay])
+
+    # Write the video file
+    final_clip.write_videofile(output_path, fps=fps, codec="libx264", audio=False)
+
+    print(f"Video saved at {output_path}")
+
 # Example usage
 song_title_created = song_title('dirfile/lyrics_with_ts.lrc')
+create_video_from_image("dirfile/image_background.jpg", "dirfile/video_without_music.mp4", duration=get_audio_length("dirfile/music_file.mp3"))
 video_audio_merge("dirfile/video_without_music.mp4", "dirfile/music_file.mp3")
 folder_creation_with_song_name(str(song_title_created))
 create_blank_mp4(f"video_final_output/{song_title_created}/{song_title_created}.mp4")
