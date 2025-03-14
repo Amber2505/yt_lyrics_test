@@ -906,6 +906,7 @@ from datetime import datetime
 import shutil
 from mutagen.mp3 import MP3
 from mutagen.wave import WAVE
+import subprocess
 
 song_name = ''
 current_song_folder_name_created = ''
@@ -1245,6 +1246,23 @@ def create_video_from_image(image_path, output_path, duration, resolution=(1920,
 
     print(f"Video saved at {output_path}")
 
+def extract_thumbnail(video_path, output_image, time="00:00.01"):
+    """Extracts a frame from the video as a thumbnail."""
+    command = [
+        "ffmpeg",
+        "-i", video_path,  # Input video
+        "-ss", time,  # Timestamp (e.g., 5 seconds)
+        "-vframes", "1",  # Extract 1 frame
+        "-s", "1920x1080",  # Set output resolution
+        output_image  # Output file
+    ]
+
+    try:
+        subprocess.run(command, check=True)
+        print(f"Thumbnail saved as {output_image}")
+    except subprocess.CalledProcessError:
+        print("Failed to extract thumbnail. Ensure FFmpeg is installed.")
+
 # Example usage
 song_title_created = song_title('dirfile/lyrics_with_ts.lrc')
 create_video_from_image("dirfile/image_background.jpg", "dirfile/video_without_music.mp4", duration=get_audio_length("dirfile/music_file.mp3"))
@@ -1253,4 +1271,5 @@ folder_creation_with_song_name(str(song_title_created))
 create_blank_mp4(f"video_final_output/{song_title_created}/{song_title_created}.mp4")
 # create_lyrics_video_singular("output_video.mp4", "dirfile/lyrics_with_ts.lrc", f"video_final_output/{song_title_created}/{song_title_created}singular.mp4")
 create_lyrics_video("output_video.mp4", "dirfile/lyrics_with_ts.lrc", f"video_final_output/{song_title_created}/{song_title_created}.mp4")
+extract_thumbnail(f"video_final_output/{song_title_created}/{song_title_created}.mp4",f"video_final_output/{song_title_created}/{song_title_created}thumbnail.jpg")
 copying_raw_file(song_title_created)
