@@ -1230,7 +1230,7 @@ def create_blank_mp4(output_path):
     with open(output_path, "wb") as f:
         pass
 
-def create_video_from_image(image_path, output_path, duration=5, resolution=(1920, 1080), fps=30):
+def create_video_from_image(image_path, output_path, duration, resolution=(1920, 1080), fps=30):
     # Load the image and resize it to fit the resolution
     image_clip = ImageClip(image_path).resized(resolution).with_duration(duration)
 
@@ -1251,6 +1251,6 @@ create_video_from_image("dirfile/image_background.jpg", "dirfile/video_without_m
 video_audio_merge("dirfile/video_without_music.mp4", "dirfile/music_file.mp3")
 folder_creation_with_song_name(str(song_title_created))
 create_blank_mp4(f"video_final_output/{song_title_created}/{song_title_created}.mp4")
-create_lyrics_video_singular("output_video.mp4", "dirfile/lyrics_with_ts.lrc", f"video_final_output/{song_title_created}/{song_title_created}singular.mp4")
+# create_lyrics_video_singular("output_video.mp4", "dirfile/lyrics_with_ts.lrc", f"video_final_output/{song_title_created}/{song_title_created}singular.mp4")
 create_lyrics_video("output_video.mp4", "dirfile/lyrics_with_ts.lrc", f"video_final_output/{song_title_created}/{song_title_created}.mp4")
 copying_raw_file(song_title_created)

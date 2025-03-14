@@ -397,202 +397,311 @@
 # # Usage
 # convert_lrc_to_txt("dirfile/lyrics_with_ts.lrc", "dirfile/plain_lyrics.txt")
 # print("Conversion completed! Lyrics saved in 'plain_lyrics.txt'.")
+#
+# '''upload video on youtube'''
+#
+# from googleapiclient.discovery import build
+# from googleapiclient.http import MediaFileUpload
+# from google_auth_oauthlib.flow import InstalledAppFlow
+# import requests
+# import json
+# import re
+#
+# # Define the required YouTube API scope
+# SCOPES = ["https://www.googleapis.com/auth/youtube.upload"]
+#
+#
+# def authenticate():
+#     """Authenticate using OAuth 2.0 and return YouTube API service."""
+#     flow = InstalledAppFlow.from_client_secrets_file("client_secrets.json", SCOPES)
+#     credentials = flow.run_local_server(port=0)
+#     return build("youtube", "v3", credentials=credentials)
+#
+#
+# def upload_video(youtube, file_path, title, description, tags, privacy_status, made_for_kids):
+#     """Upload a video to YouTube."""
+#     request = youtube.videos().insert(
+#         part="snippet,status",
+#         body={
+#             "snippet": {
+#                 "title": title,
+#                 "description": description,
+#                 "tags": tags,
+#                 "categoryId": "10",  # Category ID (22 = People & Blogs)
+#             },
+#             "status": {
+#                 "privacyStatus": privacy_status,  # public, private, unlisted
+#                 "madeForKids": made_for_kids
+#             },
+#         },
+#         media_body=MediaFileUpload(file_path, chunksize=-1, resumable=True),
+#     )
+#     response = request.execute()
+#     print("Uploaded video ID:", response["id"])
+#
+# def song_title(directory_passed):
+#     with open(directory_passed, 'r', encoding='utf-8-sig') as file:
+#         for line in file:
+#             # print(line)
+#             title = line.split(']')[-1].strip()
+#             return title
+#
+# def convert_lrc_to_txt(input_file, output_file, hashtag):
+#     # Step 1: Read LRC file and remove timestamps
+#     with open(input_file, "r", encoding="utf-8-sig") as infile:  # Use 'utf-8-sig' to remove BOM
+#         lines = infile.readlines()
+#
+#     cleaned_lines = []
+#     for line in lines:
+#         clean_line = re.sub(r"\[\d{2}:\d{2}\.\d{2}\]", "", line).strip()  # Remove timestamps & trim spaces
+#         if clean_line:
+#             cleaned_lines.append(clean_line)
+#
+#     # Step 2: Write cleaned lyrics to output file
+#     with open(output_file, "w", encoding="utf-8") as outfile:
+#         outfile.write("\n".join(cleaned_lines))
+#
+#     # Step 3: Reopen the file and adjust the first line
+#     with open(output_file, "r", encoding="utf-8") as outfile:
+#         updated_lines = outfile.readlines()
+#
+#     if updated_lines:
+#         first_line = updated_lines[0].lstrip()  # Remove any leading spaces
+#         updated_lines[0] = hashtag + "\n\n" + first_line + "\n"  # Add two new lines after first line
+#
+#     # Step 4: Write back adjusted lyrics
+#     with open(output_file, "w", encoding="utf-8") as final_outfile:
+#         final_outfile.writelines(updated_lines)
+#
+# def getting_artist_and_song_name_for_hashtag(song_name):
+#
+#     url = "https://shazam.p.rapidapi.com/search"
+#     artist_list = []
+#
+#     song_name = song_name.split('(Lyrics)')[0].strip()
+#     if "(Official Video)" in song_name:
+#         song_name = song_name.split('(Official Video)')[0].strip()
+#
+#     querystring = {"term":f"{song_name}","locale":"en-US","offset":"0","limit":"5"}
+#
+#     headers = {
+#         "x-rapidapi-key": "1dc406c142msh3655a2a0d7c612ep1f4293jsnc9baa7b3ad3c",
+#         "x-rapidapi-host": "shazam.p.rapidapi.com"
+#     }
+#
+#     response = requests.get(url, headers=headers, params=querystring)
+#
+#     raw_json = response.json()
+#
+#     response = json.dumps(raw_json, indent=4)
+#
+#     # print(response)
+#
+#     # Convert the JSON string back to a Python object
+#     loaded_data = json.loads(response)
+#     # print(loaded_data)
+#     main_tracks = loaded_data["tracks"]
+#     main_hits = main_tracks["hits"]
+#     # print(main_hits)
+#     main_track = main_hits[0]["track"]
+#     title =  main_track["title"]
+#     if "(" in title:
+#         title = "".join(title).split('(')[0].lstrip()
+#     else:
+#         title = "".join(title).lstrip()
+#     try:
+#         # Access the "artists" list
+#         artists = loaded_data["artists"]
+#         # print(artists)
+#         # Access the "hits" list
+#         hits = artists["hits"]
+#         # Extract the names
+#         artist_names = [hit["artist"]["name"] for hit in hits]
+#
+#         # Print the names
+#         for name in artist_names:
+#             # print(name)
+#             artist_list.append(name)
+#     except KeyError:
+#         artist = main_track["subtitle"]
+#         # print(len("".join(artist).split('&')))
+#         for i in "".join(artist).split('&'):
+#             artist_individual_name = i.strip()
+#             artist_list.append(artist_individual_name)
+#
+#     # print(artist_list)
+#
+#     title_lower = title.lower() #Make the title lower case for easier comparison
+#
+#     found_artists = []
+#
+#     for artist in artist_list:
+#         if artist.lower() in title_lower:
+#             found_artists.append(artist)
+#
+#     #Get the remainder of the title
+#     remainder = title
+#
+#     # for artist in found_artists:
+#     #     remainder = remainder.replace(artist, "") #Remove the artist names.
+#
+#     # remainder = remainder.replace("feat.","") #clean up feat.
+#     # remainder = remainder.replace("&","") #clean up &
+#     # remainder = remainder.replace("-","") #clean up -
+#     # remainder = remainder.replace("(Lyrics)","") #clean up (Lyrics)
+#     remainder = remainder.replace(" ", "").lower()
+#     remainder_clean = remainder.strip() #clean up extra spaces.
+#
+#     # print(remainder)
+#     # print(artist_list)
+#     # print('printing #hashtag')
+#     output_string = f"#{remainder_clean}"
+#     rest_hashtag = "#music #lyrics #lyricvideo #lyrical #scrolllyrics"
+#
+#     for artist_name_print in artist_list:
+#         artist_clean = artist_name_print.lower().replace(" ", "").replace("-", "") #Clean artist name
+#         output_string += f" #{artist_clean}"
+#
+#     return f"{output_string} {rest_hashtag}"
+#
+#
+# if __name__ == "__main__":
+#     youtube = authenticate()
+#
+#     # Set video details
+#     # file_path = "dirfile/video_without_music.mp4"
+#     file_path = "video_final_output/The Weeknd - Hurry Up Tomorrow (Lyrics)/The Weeknd - Hurry Up Tomorrow (Lyrics).mp4"
+#     title = song_title('video_final_output/The Weeknd - Hurry Up Tomorrow (Lyrics)/The Weeknd - Hurry Up Tomorrow (Lyrics).lrc')
+#     # create a txt file that could further be used to copy and
+#     # past the lyrics without the time stamps as well as the tags should be created on top of the lyrics
+#     hashtag_generate = getting_artist_and_song_name_for_hashtag(title)
+#     convert_lrc_to_txt("video_final_output/The Weeknd - Hurry Up Tomorrow (Lyrics)/The Weeknd - Hurry Up Tomorrow (Lyrics).lrc", "dirfile/plain_lyrics.txt", hashtag_generate)
+#     # Read description from the text file
+#     description_file_path = "dirfile/plain_lyrics.txt"  # Replace with your actual file path
+#     with open(description_file_path, "r", encoding="utf-8") as file:
+#         description = file.read()
+#     # pass the tags on top of description as well as below in tags section
+#     tag_list = []
+#     if hashtag_generate:  # Check if hashtag_generate is not empty
+#         hashtag_list = hashtag_generate.split()  # Split the string into a list of words
+#
+#         for word in hashtag_list:
+#             if word.startswith("#"):
+#                 tag_list.append(word[1:])  # Add the word without the '#' to the tags list
+#     tags = tag_list
+#     # have to change this to public instead
+#     privacy_status = "public"
+#     made_for_kids = False  # Change to True if it's made for kids
+#
+#     # Upload the video
+#     upload_video(youtube, file_path, title, description, tags, privacy_status, made_for_kids)
 
-'''upload video on youtube'''
-
-from googleapiclient.discovery import build
-from googleapiclient.http import MediaFileUpload
-from google_auth_oauthlib.flow import InstalledAppFlow
-import requests
-import json
-import re
-
-# Define the required YouTube API scope
-SCOPES = ["https://www.googleapis.com/auth/youtube.upload"]
-
-
-def authenticate():
-    """Authenticate using OAuth 2.0 and return YouTube API service."""
-    flow = InstalledAppFlow.from_client_secrets_file("client_secrets.json", SCOPES)
-    credentials = flow.run_local_server(port=0)
-    return build("youtube", "v3", credentials=credentials)
-
-
-def upload_video(youtube, file_path, title, description, tags, privacy_status, made_for_kids):
-    """Upload a video to YouTube."""
-    request = youtube.videos().insert(
-        part="snippet,status",
-        body={
-            "snippet": {
-                "title": title,
-                "description": description,
-                "tags": tags,
-                "categoryId": "10",  # Category ID (22 = People & Blogs)
-            },
-            "status": {
-                "privacyStatus": privacy_status,  # public, private, unlisted
-                "madeForKids": made_for_kids
-            },
-        },
-        media_body=MediaFileUpload(file_path, chunksize=-1, resumable=True),
-    )
-    response = request.execute()
-    print("Uploaded video ID:", response["id"])
-
-def song_title(directory_passed):
-    with open(directory_passed, 'r', encoding='utf-8-sig') as file:
-        for line in file:
-            # print(line)
-            title = line.split(']')[-1].strip()
-            return title
-
-def convert_lrc_to_txt(input_file, output_file, hashtag):
-    # Step 1: Read LRC file and remove timestamps
-    with open(input_file, "r", encoding="utf-8-sig") as infile:  # Use 'utf-8-sig' to remove BOM
-        lines = infile.readlines()
-
-    cleaned_lines = []
-    for line in lines:
-        clean_line = re.sub(r"\[\d{2}:\d{2}\.\d{2}\]", "", line).strip()  # Remove timestamps & trim spaces
-        if clean_line:
-            cleaned_lines.append(clean_line)
-
-    # Step 2: Write cleaned lyrics to output file
-    with open(output_file, "w", encoding="utf-8") as outfile:
-        outfile.write("\n".join(cleaned_lines))
-
-    # Step 3: Reopen the file and adjust the first line
-    with open(output_file, "r", encoding="utf-8") as outfile:
-        updated_lines = outfile.readlines()
-
-    if updated_lines:
-        first_line = updated_lines[0].lstrip()  # Remove any leading spaces
-        updated_lines[0] = hashtag + "\n\n" + first_line + "\n"  # Add two new lines after first line
-
-    # Step 4: Write back adjusted lyrics
-    with open(output_file, "w", encoding="utf-8") as final_outfile:
-        final_outfile.writelines(updated_lines)
-
-def getting_artist_and_song_name_for_hashtag(song_name):
-
-    url = "https://shazam.p.rapidapi.com/search"
-    artist_list = []
-
-    song_name = song_name.split('(Lyrics)')[0].strip()
-    if "(Official Video)" in song_name:
-        song_name = song_name.split('(Official Video)')[0].strip()
-
-    querystring = {"term":f"{song_name}","locale":"en-US","offset":"0","limit":"5"}
-
-    headers = {
-        "x-rapidapi-key": "1dc406c142msh3655a2a0d7c612ep1f4293jsnc9baa7b3ad3c",
-        "x-rapidapi-host": "shazam.p.rapidapi.com"
-    }
-
-    response = requests.get(url, headers=headers, params=querystring)
-
-    raw_json = response.json()
-
-    response = json.dumps(raw_json, indent=4)
-
-    # print(response)
-
-    # Convert the JSON string back to a Python object
-    loaded_data = json.loads(response)
-    # print(loaded_data)
-    main_tracks = loaded_data["tracks"]
-    main_hits = main_tracks["hits"]
-    # print(main_hits)
-    main_track = main_hits[0]["track"]
-    title =  main_track["title"]
-    if "(" in title:
-        title = "".join(title).split('(')[0].lstrip()
-    else:
-        title = "".join(title).lstrip()
-    try:
-        # Access the "artists" list
-        artists = loaded_data["artists"]
-        # print(artists)
-        # Access the "hits" list
-        hits = artists["hits"]
-        # Extract the names
-        artist_names = [hit["artist"]["name"] for hit in hits]
-
-        # Print the names
-        for name in artist_names:
-            # print(name)
-            artist_list.append(name)
-    except KeyError:
-        artist = main_track["subtitle"]
-        # print(len("".join(artist).split('&')))
-        for i in "".join(artist).split('&'):
-            artist_individual_name = i.strip()
-            artist_list.append(artist_individual_name)
-
-    # print(artist_list)
-
-    title_lower = title.lower() #Make the title lower case for easier comparison
-
-    found_artists = []
-
-    for artist in artist_list:
-        if artist.lower() in title_lower:
-            found_artists.append(artist)
-
-    #Get the remainder of the title
-    remainder = title
-
-    # for artist in found_artists:
-    #     remainder = remainder.replace(artist, "") #Remove the artist names.
-
-    # remainder = remainder.replace("feat.","") #clean up feat.
-    # remainder = remainder.replace("&","") #clean up &
-    # remainder = remainder.replace("-","") #clean up -
-    # remainder = remainder.replace("(Lyrics)","") #clean up (Lyrics)
-    remainder = remainder.replace(" ", "").lower()
-    remainder_clean = remainder.strip() #clean up extra spaces.
-
-    # print(remainder)
-    # print(artist_list)
-    # print('printing #hashtag')
-    output_string = f"#{remainder_clean}"
-    rest_hashtag = "#music #lyrics #lyricvideo #lyrical #scrolllyrics"
-
-    for artist_name_print in artist_list:
-        artist_clean = artist_name_print.lower().replace(" ", "").replace("-", "") #Clean artist name
-        output_string += f" #{artist_clean}"
-
-    return f"{output_string} {rest_hashtag}"
+'''getting new songs with youtube link and poster'''
+# import requests
+# import datetime
+#
+# API_KEY = "AIzaSyBTK7JvwtqxPbLjDBHdd9Ud28DofGXu0-Q"  # Replace with your actual API key
+# SEARCH_URL = "https://www.googleapis.com/youtube/v3/search"
+# CHANNELS_URL = "https://www.googleapis.com/youtube/v3/channels"
+#
+# # Get recent videos (last 7 days)
+# time_threshold = (datetime.datetime.utcnow() - datetime.timedelta(days=7)).isoformat("T") + "Z"
+#
+# # Search for popular pop music videos
+# params = {
+#     "part": "snippet",
+#     "q": "pop music",
+#     "order": "viewCount",
+#     "publishedAfter": time_threshold,
+#     "type": "video",
+#     "videoCategoryId": "10",
+#     "maxResults": 10,
+#     "key": API_KEY
+# }
+#
+# response = requests.get(SEARCH_URL, params=params)
+# if response.status_code != 200:
+#     print("Error:", response.json())
+#     exit()
+#
+# results = response.json()
+# filtered_videos = []
+#
+# for item in results.get("items", []):
+#     title = item["snippet"]["title"]
+#     video_id = item["id"]["videoId"]
+#     channel_id = item["snippet"]["channelId"]
+#     channel_title = item["snippet"]["channelTitle"]
+#
+#     # Get the highest available thumbnail
+#     thumbnails = item["snippet"]["thumbnails"]
+#     poster_url = thumbnails.get("maxres", thumbnails.get("standard", thumbnails.get("high", thumbnails["medium"])))[
+#         "url"]
+#
+#     # Get channel details (subscribers)
+#     channel_params = {"part": "statistics", "id": channel_id, "key": API_KEY}
+#     channel_response = requests.get(CHANNELS_URL, params=channel_params)
+#
+#     if channel_response.status_code != 200:
+#         continue
+#
+#     channel_data = channel_response.json()
+#     subscribers = int(channel_data["items"][0]["statistics"].get("subscriberCount", 0))
+#
+#     # Only include artists with at least 3M subscribers
+#     if subscribers >= 3_000_000:
+#         video_url = f"https://www.youtube.com/watch?v={video_id}"
+#         filtered_videos.append((channel_title, title, video_url, poster_url))
+#
+# # Display results
+# for artist, title, url, poster in filtered_videos:
+#     print(f"{artist} - {title}\n{url}\nPoster: {poster}\n")
 
 
-if __name__ == "__main__":
-    youtube = authenticate()
-
-    # Set video details
-    file_path = "dirfile/video_without_music.mp4"
-    title = song_title('dirfile/lyrics_with_ts.lrc')
-    # create a txt file that could further be used to copy and
-    # past the lyrics without the time stamps as well as the tags should be created on top of the lyrics
-    hashtag_generate = getting_artist_and_song_name_for_hashtag(title)
-    convert_lrc_to_txt("dirfile/lyrics_with_ts.lrc", "dirfile/plain_lyrics.txt", hashtag_generate)
-    # Read description from the text file
-    description_file_path = "dirfile/plain_lyrics.txt"  # Replace with your actual file path
-    with open(description_file_path, "r", encoding="utf-8") as file:
-        description = file.read()
-    # pass the tags on top of description as well as below in tags section
-    tag_list = []
-    if hashtag_generate:  # Check if hashtag_generate is not empty
-        hashtag_list = hashtag_generate.split()  # Split the string into a list of words
-
-        for word in hashtag_list:
-            if word.startswith("#"):
-                tag_list.append(word[1:])  # Add the word without the '#' to the tags list
-    tags = tag_list
-    # have to change this to public instead
-    privacy_status = "private"
-    made_for_kids = False  # Change to True if it's made for kids
-
-    # Upload the video
-    upload_video(youtube, file_path, title, description, tags, privacy_status, made_for_kids)
+'''increasing the tumbnail size to 1920 * 1080 to fit the full screen in youtube'''
+# from PIL import Image
+# import requests
+# from io import BytesIO
+#
+# # YouTube Thumbnail URL (replace VIDEO_ID)
+# thumbnail_url = "https://i.ytimg.com/vi/W_YOJWZIjxo/maxresdefault.jpg"
+#
+# # Fetch and upscale image
+# response = requests.get(thumbnail_url)
+# if response.status_code == 200:
+#     img = Image.open(BytesIO(response.content))
+#     img = img.resize((1920, 1080), Image.LANCZOS)
+#     img.save("thumbnail_1920x1080.jpg")  # Save the new image
+#     print("Saved: thumbnail_1920x1080.jpg")
+# else:
+#     print("Failed to fetch thumbnail.")
 
 
+'''getting video thumbnail from local directory'''
+
+# import subprocess
+#
+#
+# def extract_thumbnail(video_path, output_image, time="00:00.01"):
+#     """Extracts a frame from the video as a thumbnail."""
+#     command = [
+#         "ffmpeg",
+#         "-i", video_path,  # Input video
+#         "-ss", time,  # Timestamp (e.g., 5 seconds)
+#         "-vframes", "1",  # Extract 1 frame
+#         "-s", "1920x1080",  # Set output resolution
+#         output_image  # Output file
+#     ]
+#
+#     try:
+#         subprocess.run(command, check=True)
+#         print(f"Thumbnail saved as {output_image}")
+#     except subprocess.CalledProcessError:
+#         print("Failed to extract thumbnail. Ensure FFmpeg is installed.")
+#
+#
+# # Example Usage
+# video_file = "video_final_output/The Weeknd - Hurry Up Tomorrow (Lyrics)/The Weeknd - Hurry Up Tomorrow (Lyrics).mp4"  # Replace with your actual video file path
+# output_image = "thumbnail_1920x1080.jpg"
+# extract_thumbnail(video_file, output_image)
+#
