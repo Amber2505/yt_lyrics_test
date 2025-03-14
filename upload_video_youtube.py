@@ -185,12 +185,12 @@ if __name__ == "__main__":
 
     # Set video details
     # file_path = "dirfile/video_without_music.mp4"
-    file_path = "video_final_output/The Weeknd - Hurry Up Tomorrow (Lyrics)/The Weeknd - Hurry Up Tomorrow (Lyrics).mp4"
-    title = song_title('video_final_output/The Weeknd - Hurry Up Tomorrow (Lyrics)/The Weeknd - Hurry Up Tomorrow (Lyrics).lrc')
+    file_path = "video_final_output/Gracie Abrams - That’s So True (Lyrics)/Gracie Abrams - That’s So True (Lyrics).mp4"
+    title = song_title('video_final_output/Gracie Abrams - That’s So True (Lyrics)/Gracie Abrams - That’s So True (Lyrics).lrc')
     # create a txt file that could further be used to copy and
     # past the lyrics without the time stamps as well as the tags should be created on top of the lyrics
     hashtag_generate = getting_artist_and_song_name_for_hashtag(title)
-    convert_lrc_to_txt("video_final_output/The Weeknd - Hurry Up Tomorrow (Lyrics)/The Weeknd - Hurry Up Tomorrow (Lyrics).lrc", "dirfile/plain_lyrics.txt", hashtag_generate)
+    convert_lrc_to_txt("video_final_output/Gracie Abrams - That’s So True (Lyrics)/Gracie Abrams - That’s So True (Lyrics).lrc", "dirfile/plain_lyrics.txt", hashtag_generate)
     # Read description from the text file
     description_file_path = "dirfile/plain_lyrics.txt"  # Replace with your actual file path
     with open(description_file_path, "r", encoding="utf-8") as file:
@@ -207,7 +207,7 @@ if __name__ == "__main__":
     # have to change this to public instead
     privacy_status = "public"
     made_for_kids = False  # Change to True if it's made for kids
-    thumbnail_path = "video_final_output/The Weeknd - Hurry Up Tomorrow (Lyrics)/The Weeknd - Hurry Up Tomorrow (Lyrics).jpg"
+    thumbnail_path = "video_final_output/Gracie Abrams - That’s So True (Lyrics)/Gracie Abrams - That’s So True (Lyrics)-thumbnail.jpg"
 
     # Upload the video
     upload_video(youtube, file_path, title, description, tags, privacy_status, made_for_kids, thumbnail_path)

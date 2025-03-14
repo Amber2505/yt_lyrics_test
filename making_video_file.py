@@ -85,7 +85,7 @@ def get_audio_length(file_path):
         else:
             return "Unsupported file format"
         length_music = audio.info.length  # Returns duration in seconds
-        total_music_seconds = round(length_music)
+        total_music_seconds = length_music
         return total_music_seconds
     except Exception as e:
         return f"Error: {str(e)}"
@@ -371,5 +371,6 @@ folder_creation_with_song_name(str(song_title_created))
 create_blank_mp4(f"video_final_output/{song_title_created}/{song_title_created}.mp4")
 # create_lyrics_video_singular("output_video.mp4", "dirfile/lyrics_with_ts.lrc", f"video_final_output/{song_title_created}/{song_title_created}singular.mp4")
 create_lyrics_video("output_video.mp4", "dirfile/lyrics_with_ts.lrc", f"video_final_output/{song_title_created}/{song_title_created}.mp4")
-extract_thumbnail(f"video_final_output/{song_title_created}/{song_title_created}.mp4", f"video_final_output/{song_title_created}/{song_title_created}thumbnail.jpg")
+extract_thumbnail(f"video_final_output/{song_title_created}/{song_title_created}.mp4",f"video_final_output/{song_title_created}/{song_title_created}-thumbnail.jpg")
 copying_raw_file(song_title_created)
+
