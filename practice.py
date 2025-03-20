@@ -127,6 +127,8 @@
 #                 outfile.write(clean_line + "\n")
 
 '''removing the extra space in the beginning and adding  2 lines after the title in the oplain_lyrics.txt file'''
+# import aeneas
+
 # import re
 #
 #
@@ -649,7 +651,7 @@
 #     subscribers = int(channel_data["items"][0]["statistics"].get("subscriberCount", 0))
 #
 #     # Only include artists with at least 3M subscribers
-#     if subscribers >= 3_000_000:
+#     if subscribers >= 5_000_000:
 #         video_url = f"https://www.youtube.com/watch?v={video_id}"
 #         filtered_videos.append((channel_title, title, video_url, poster_url))
 #
@@ -658,24 +660,78 @@
 #     print(f"{artist} - {title}\n{url}\nPoster: {poster}\n")
 
 
-'''increasing the tumbnail size to 1920 * 1080 to fit the full screen in youtube'''
+'''getting the tumbnail size to 1920 * 1080 to fit the full screen in youtube'''
 # from PIL import Image
 # import requests
 # from io import BytesIO
 #
-# # YouTube Thumbnail URL (replace VIDEO_ID)
-# thumbnail_url = "https://i.ytimg.com/vi/W_YOJWZIjxo/maxresdefault.jpg"
+# def save_image_from_youtube(code):
+#     # YouTube Thumbnail URL (replace VIDEO_ID)
+#     thumbnail_url = f"https://i.ytimg.com/vi/{code}/maxresdefault.jpg"
 #
-# # Fetch and upscale image
-# response = requests.get(thumbnail_url)
-# if response.status_code == 200:
-#     img = Image.open(BytesIO(response.content))
-#     img = img.resize((1920, 1080), Image.LANCZOS)
-#     img.save("thumbnail_1920x1080.jpg")  # Save the new image
-#     print("Saved: thumbnail_1920x1080.jpg")
-# else:
-#     print("Failed to fetch thumbnail.")
+#     # Fetch and upscale image
+#     response = requests.get(thumbnail_url)
+#     if response.status_code == 200:
+#         img = Image.open(BytesIO(response.content))
+#         img = img.resize((1920, 1080), Image.LANCZOS)
+#         img.save("thumbnail_1920x1080.jpg")  # Save the new image
+#         print("Saved: thumbnail_1920x1080.jpg")
+#     else:
+#         print("Failed to fetch thumbnail.")
+#
+# save_image_from_youtube('4QIZE708gJ4')
 
+'''search for the official audio file using the official video id'''
+# import yt_dlp
+# from ytmusicapi import YTMusic
+#
+# def search_official_audio(video_id):
+#     """Search YouTube Music for the official audio of a given video."""
+#     ytmusic = YTMusic()  # Initialize API without authentication
+#     video_url = f"https://www.youtube.com/watch?v={video_id}"
+#
+#     # Get search results for the video title
+#     with yt_dlp.YoutubeDL({'quiet': True}) as ydl:
+#         info = ydl.extract_info(video_url, download=False)
+#         search_query = info.get('title', '')
+#
+#     print(f"🔍 Searching for: {search_query}")
+#
+#     # Search for the official song on YouTube Music
+#     search_results = ytmusic.search(search_query, filter="songs")
+#     if search_results:
+#         return search_results[0]['videoId']  # Return the first result (most relevant)
+#
+#     print("⚠️ No official audio found.")
+#     return None
+
+# print(search_official_audio("KhnVcAC5bIM"))
+
+'''downloading music from video'''
+# import yt_dlp
+#
+# def download_youtube_music(video_url_id, output_path="."):
+#     """Download YouTube audio as an MP3 file."""
+#     video_music_id_found = search_official_audio(video_url_id)
+#     if video_music_id_found is not None:
+#         ydl_opts = {
+#             'format': 'bestaudio/best',
+#             'postprocessors': [{
+#                 'key': 'FFmpegExtractAudio',
+#                 'preferredcodec': 'mp3',
+#                 'preferredquality': '192',
+#             }],
+#             'outtmpl': f"{output_path}/%(title)s.%(ext)s",
+#         }
+#
+#         video_url = f'https://www.youtube.com/watch?v={video_music_id_found}'
+#         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+#             ydl.download([video_url])
+#     else:
+#         print('No audio file (mp3) found')
+# # Example Usage
+# # video_url = "https://www.youtube.com/watch?v=4QIZE708gJ4"
+# download_youtube_music('4QIZE708gJ4')
 
 '''getting video thumbnail from local directory'''
 
@@ -704,4 +760,365 @@
 # video_file = "video_final_output/The Weeknd - Hurry Up Tomorrow (Lyrics)/The Weeknd - Hurry Up Tomorrow (Lyrics).mp4"  # Replace with your actual video file path
 # output_image = "thumbnail_1920x1080.jpg"
 # extract_thumbnail(video_file, output_image)
+
+'''getting plain_lyrics using lyricsgenuis'''
+# import yt_dlp
+# import lyricsgenius
 #
+# GENIUS_API_KEY = "KT6XN3FHd0Hy1N8TmombJtgILOSEpW4-o-lXjpQBY4jNLngrnL0pvDzG7QVlBO8p"  # 🔹 Replace with your Genius API key
+# genius = lyricsgenius.Genius(GENIUS_API_KEY)
+#
+# def get_song_title(video_id):
+#     """Fetch the song title from YouTube using yt_dlp."""
+#     video_url = f"https://www.youtube.com/watch?v={video_id}"
+#     ydl_opts = {'quiet': True}
+#
+#     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+#         info = ydl.extract_info(video_url, download=False)
+#         return info.get('title', '')
+#
+# def fetch_lyrics(song_title):
+#     """Fetch lyrics from Genius using the song title."""
+#     song = genius.search_song(song_title)
+#     if song:
+#         return song.lyrics
+#     return "Lyrics not found."
+#
+# def get_youtube_lyrics(video_id):
+#     """Main function to get lyrics from a YouTube video ID."""
+#     song_title = get_song_title(video_id)
+#     print(f"🔍 Searching lyrics for: {song_title}")
+#
+#     lyrics = fetch_lyrics(song_title)
+#     return lyrics
+#
+# # Example Usage
+# video_id = "B8VEqSBTjZQ"  # Replace with a YouTube video ID
+# lyrics = get_youtube_lyrics(video_id)
+# print(lyrics)
+
+'''tried using aeneas however getting error while using pip'''
+
+# import yt_dlp
+# import lyricsgenius
+# import re
+# import os
+# from aeneas.executetask import ExecuteTask
+# from aeneas.task import Task
+# from aeneas.tools.execute_task import ExecuteTaskCLI
+#
+#
+# def generate_lrc(audio_file, lyrics_file, output_lrc):
+#     """Use Aeneas to generate an LRC file with real timestamps."""
+#     print('audio_file')
+#     print(lyrics_file)
+#     config_string = "task_language=eng|is_text_type=plain|os_task_file_format=lrc"
+#     task = Task(config_string=config_string)
+#
+#     task.audio_file_path = audio_file
+#     task.text_file_path = lyrics_file
+#     task.sync_map_file_path = output_lrc
+#
+#     ExecuteTask(task).execute()
+#     task.output_sync_map_file()
+#
+#     print(f"✅ LRC file saved as {output_lrc}")
+#     return output_lrc
+#
+#
+# generate_lrc("dirfile/music_file.mp3", "dirfile/plain_lyrics.txt", "dirfile/lyrics_with_ts.lrc")
+#
+
+
+'''test lrc'''
+# import whisper
+#
+# model = whisper.load_model("small")
+# result = model.transcribe("dirfile/music_file.mp3")
+#
+# # Print out timestamps with lyrics
+# for segment in result["segments"]:
+#     start_time = segment["start"]
+#     lyric_line = segment["text"]
+#     print(f"[{start_time:.2f}] {lyric_line}")
+
+'''start and end time , perfect synced'''
+# import whisper
+#
+# # Load Whisper model
+# model = whisper.load_model("small")
+#
+# # Transcribe the audio
+# result = model.transcribe("dirfile/music_file.mp3", verbose=True)
+#
+# # Read and clean the plain lyrics file
+# with open("dirfile/plain_lyrics.txt", "r", encoding="utf-8") as file:
+#     lyrics = [line.strip() for line in file.readlines() if line.strip()]
+# if len(lyrics) > 2:
+#     lyrics = lyrics[1:-1]
+#
+# # Whisper outputs (sorted by timestamp) - for reference
+# segments = sorted(result["segments"], key=lambda x: x["start"])
+# whisper_texts = [segment["text"] for segment in segments]
+# whisper_timestamps = [segment["start"] for segment in segments]
+#
+# # Print Whisper transcription for reference
+# print("Whisper Transcription (for reference):")
+# for time, text in enumerate(zip(whisper_timestamps, whisper_texts)):
+#     minutes, seconds = divmod(time[0], 60)
+#     formatted_time = f"{int(minutes):02d}:{seconds:05.2f}"
+#     print(f"[{formatted_time}] {text[1]}")
+#
+# # Function to format time as [MM:SS.MS]
+# def format_timestamp(seconds):
+#     minutes, secs = divmod(seconds, 60)
+#     return f"[{int(minutes):02d}:{secs:05.2f}]"
+#
+# # Simple sequential timing: assume each line takes ~2-3 seconds
+# aligned_lyrics = []
+# current_time = 0.0  # Start at 0 seconds
+# avg_line_duration = 2.5  # Average seconds per line (adjust based on song pace)
+#
+# for i, lyric_line in enumerate(lyrics):
+#     # Use Whisper timestamp if available and reasonable, else increment
+#     if i < len(whisper_timestamps):
+#         whisper_time = whisper_timestamps[i]
+#         # Only use Whisper time if it’s after the last time and not too far ahead
+#         if whisper_time > current_time and whisper_time < current_time + 5.0:
+#             current_time = whisper_time
+#         else:
+#             current_time += avg_line_duration
+#     else:
+#         current_time += avg_line_duration
+#
+#     formatted_time = format_timestamp(current_time)
+#     aligned_lyrics.append(f"{formatted_time} {lyric_line}")
+#     print(f"Assigned: '{lyric_line}' -> {formatted_time}")
+#
+# # Save and print results
+# with open("timestamped_lyrics.txt", "w", encoding="utf-8") as out_file:
+#     out_file.write("\n".join(aligned_lyrics))
+#
+# print("\nFinal Output:")
+# for line in aligned_lyrics:
+#     print(line)
+
+'''trying to just print the starttime in [02:45.000] format so could pass it and make an lrc file'''
+# import whisper
+#
+# # Load Whisper model
+# model = whisper.load_model("small")
+#
+# # Transcribe the audio
+# result = model.transcribe("dirfile/music_file.mp3", verbose=True)
+#
+# # Read and clean the plain lyrics file
+# with open("dirfile/plain_lyrics.txt", "r", encoding="utf-8") as file:
+#     lyrics = [line.strip() for line in file.readlines() if line.strip()]
+# if len(lyrics) > 2:
+#     lyrics = lyrics[1:-1]
+#
+# # Whisper outputs (sorted by timestamp)
+# segments = sorted(result["segments"], key=lambda x: x["start"])
+# whisper_timestamps = [segment["start"] for segment in segments]
+#
+# # Function to format time as [MM:SS.MS]
+# def format_timestamp(seconds):
+#     minutes, secs = divmod(seconds, 60)
+#     return f"[{int(minutes):02d}:{secs:06.3f}]"
+#
+# # Print only the start times
+# print("Whisper Start Times:")
+# for timestamp in whisper_timestamps:
+#     formatted_time = format_timestamp(timestamp)
+#     print(formatted_time)
+
+# Print Whisper transcription for reference
+# print("Whisper Transcription (for reference):")
+# for time, text in zip(whisper_timestamps, whisper_texts):
+#     minutes, seconds = divmod(time, 60)
+#     formatted_time = f"[{int(minutes):02d}:{seconds:05.2f}]"
+#     print(f"{formatted_time} {text}")
+#
+# # Function to format time as [MM:SS.MS] for LRC
+# def format_timestamp(seconds):
+#     minutes, secs = divmod(seconds, 60)
+#     return f"[{int(minutes):02d}:{secs:05.2f}]"
+#
+# # Align lyrics with Whisper timestamps
+# aligned_lyrics = []
+# current_time = 0.0  # Start at 0 seconds
+# segment_idx = 0
+# increment = 2.5  # Fallback increment if needed
+#
+# for lyric_line in lyrics:
+#     # Use Whisper timestamp if available
+#     if segment_idx < len(whisper_timestamps):
+#         timestamp = whisper_timestamps[segment_idx]
+#         # Ensure timestamp progresses forward
+#         if timestamp <= current_time:
+#             timestamp = current_time + 0.1  # Small bump to avoid overlap
+#         current_time = timestamp
+#         segment_idx += 1
+#     else:
+#         # If out of Whisper timestamps, increment from last time
+#         current_time += increment
+#         timestamp = current_time
+#
+#     formatted_time = format_timestamp(timestamp)
+#     aligned_lyrics.append(f"{formatted_time} {lyric_line}")
+#     print(f"Assigned: '{lyric_line}' -> {formatted_time}")
+#
+# # Save as .lrc file with correct song length
+# lrc_filename = "dirfile/lyrics_with_ts.lrc"
+# with open(lrc_filename, "w", encoding="utf-8") as out_file:
+#     out_file.write("[ar: Artist]\n")
+#     out_file.write("[ti: Song Title]\n")
+#     out_file.write("[al: Album]\n")
+#     out_file.write("[length: 02:51]\n")  # Updated to match song duration
+#     out_file.write("\n")
+#     out_file.write("\n".join(aligned_lyrics))
+#
+# print("\nFinal Output (saved to timestamped_lyrics.lrc):")
+# for line in aligned_lyrics:
+#     print(line)
+#
+# print(f"\nLRC file saved as: {lrc_filename}")
+
+'''printing lyrics and timestamp from whisper'''
+# import whisper
+#
+# # Load Whisper model
+# model = whisper.load_model("small")
+#
+# # Transcribe the audio
+# result = model.transcribe("dirfile/music_file.mp3", verbose=True)
+#
+# # Read and clean the plain lyrics file
+# with open("dirfile/plain_lyrics.txt", "r", encoding="utf-8") as file:
+#     lyrics = [line.strip() for line in file.readlines() if line.strip()]
+# if len(lyrics) > 2:
+#     lyrics = lyrics[1:-1]
+#
+# # Whisper outputs (sorted by timestamp)
+# segments = sorted(result["segments"], key=lambda x: x["start"])
+#
+# # Format timestamps and pair with Whisper-transcribed lyrics
+# for segment in segments:
+#     start_time = segment["start"]
+#     # Convert seconds to [MM:SS.MS] format
+#     minutes = int(start_time // 60)
+#     seconds = int(start_time % 60)
+#     milliseconds = int((start_time % 1) * 100)  # Get 2 decimal places
+#     formatted_time = f"[{minutes:02d}:{seconds:02d}.{milliseconds:02d}]"
+#
+#     # Get the transcribed text from Whisper
+#     whisper_lyrics = segment["text"].strip()
+#
+#     # Print formatted timestamp and Whisper lyrics
+#     print(f"{formatted_time} {whisper_lyrics}")
+
+import re
+import whisper
+import re
+from difflib import SequenceMatcher
+
+# Function to find the best matching segment in plain lyrics
+def find_matching_segment(whisper_text, plain_words, start_idx):
+    whisper_words = whisper_text.lower().split()
+    best_match = None
+    best_ratio = 0
+    best_end_idx = start_idx
+
+    # Search within a reasonable window of words
+    # window_size = len(whisper_words) * 2
+    for i in range(start_idx, min(start_idx + 50, len(plain_words) - len(whisper_words) + 1)):
+        candidate = " ".join(plain_words[i:i + len(whisper_words)])
+        ratio = SequenceMatcher(None, whisper_text.lower(), candidate.lower()).ratio()
+        if ratio > best_ratio and ratio > 0.5:  # Threshold for a decent match
+            best_ratio = ratio
+            best_match = candidate
+            best_end_idx = i + len(whisper_words)
+
+    return best_match, best_end_idx
+
+def getting_lrc_file():
+    # Load Whisper model
+    model = whisper.load_model("small")
+
+    # Transcribe the audio
+    result = model.transcribe("dirfile/music_file.mp3", verbose=False)
+
+    # Read and clean the plain lyrics file
+    with open("dirfile/plain_lyrics.txt", "r", encoding="utf-8") as file:
+        lyrics_lines = [line.strip() for line in file.readlines() if line.strip()]
+
+    if len(lyrics_lines) > 2:
+        lyrics_lines = lyrics_lines[1:-1]
+
+    plain_lyrics_string = " ".join(lyrics_lines)
+    plain_lyrics_words = plain_lyrics_string.split()
+
+    # Whisper outputs (sorted by timestamp)
+    segments = sorted(result["segments"], key=lambda x: x["start"])
+
+    # Split plain lyrics to match Whisper segments
+    split_lyrics = []
+    current_idx = 0
+    aligned_lyrics = []
+
+    for segment in segments:
+        start_time = segment["start"]
+        minutes = int(start_time // 60)
+        seconds = int(start_time % 60)
+        milliseconds = int((start_time % 1) * 100)
+        formatted_time = f"[{minutes:02d}:{seconds:02d}.{milliseconds:02d}]"
+
+        whisper_lyrics = segment["text"].strip()
+
+        # Find the matching segment in plain lyrics
+        matched_segment, new_idx = find_matching_segment(whisper_lyrics, plain_lyrics_words, current_idx)
+
+        if matched_segment:
+            split_lyrics.append((formatted_time, matched_segment))
+            current_idx = new_idx
+        else:
+            # If no match found, use the Whisper text as fallback and advance minimally
+            split_lyrics.append((formatted_time, whisper_lyrics))
+            current_idx += len(whisper_lyrics.split())
+
+    # Output the results
+    for timestamp, lyrics in split_lyrics:
+        print("time stamp")
+        print(f"{timestamp} {lyrics}")
+        aligned_lyrics.append(f"{timestamp} {lyrics}")
+
+    with open('dirfile/plain_lyrics.txt', 'r', encoding='utf-8') as file:
+        first_line = file.readline().strip()
+        print(first_line)
+
+
+    lrc_filename = "dirfile/lyrics_with_ts.lrc"
+    with open(lrc_filename, "w", encoding="utf-8") as out_file:
+        out_file.write(f"[00:00.00] {first_line}\n")
+        out_file.write("\n".join(aligned_lyrics))
+
+    with open(lrc_filename, "r", encoding="utf-8") as file:
+        lines = file.readlines()
+
+    count = 0
+    for i in range(len(lines)):
+        if "[00:00.00]" in lines[i]:
+            count += 1
+            if count == 2:  # Modify the second occurrence
+                lines[i] = lines[i].replace("[00:00.00]", "[00:00.01]", 1)
+                break  # Stop after modifying the second occurrence
+    if lines:
+        match = re.match(r"(\[.*?\]) (.*)", lines[-1].strip())  # Extract timestamp if present
+        timestamp, _ = match.groups()
+        lines[-1] = f"{timestamp} By Video Junkie\n"  # Preserve timestamp
+
+    with open(lrc_filename, "w", encoding="utf-8") as file:
+        file.writelines(lines)
+
+getting_lrc_file()

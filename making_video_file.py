@@ -280,13 +280,15 @@ def copying_raw_file(song_name):
     source_files = [
         "lyrics_with_ts.lrc",
         "music_file.mp3",
-        "video_without_music.mp4"
+        "video_without_music.mp4",
+        "plain_lyrics.txt"
     ]
 
     destination_files = [
         f"{song_name}.lrc",
         f"{song_name}.mp3",
-        f"{song_name}_without_audio.mp4"
+        f"{song_name}_without_audio.mp4",
+        f"{song_name}_plain_lyrics.txt"
     ]
 
     # Define source and destination directories
@@ -364,13 +366,13 @@ def extract_thumbnail(video_path, output_image, time="00:00.01"):
         print("Failed to extract thumbnail. Ensure FFmpeg is installed.")
 
 # Example usage
-song_title_created = song_title('dirfile/lyrics_with_ts.lrc')
-create_video_from_image("dirfile/image_background.jpg", "dirfile/video_without_music.mp4", duration=get_audio_length("dirfile/music_file.mp3"))
-video_audio_merge("dirfile/video_without_music.mp4", "dirfile/music_file.mp3")
-folder_creation_with_song_name(str(song_title_created))
-create_blank_mp4(f"video_final_output/{song_title_created}/{song_title_created}.mp4")
-# create_lyrics_video_singular("output_video.mp4", "dirfile/lyrics_with_ts.lrc", f"video_final_output/{song_title_created}/{song_title_created}singular.mp4")
-create_lyrics_video("output_video.mp4", "dirfile/lyrics_with_ts.lrc", f"video_final_output/{song_title_created}/{song_title_created}.mp4")
-extract_thumbnail(f"video_final_output/{song_title_created}/{song_title_created}.mp4",f"video_final_output/{song_title_created}/{song_title_created}-thumbnail.jpg")
-copying_raw_file(song_title_created)
+# song_title_created = song_title('dirfile/lyrics_with_ts.lrc')
+# create_video_from_image("dirfile/image_background.jpg", "dirfile/video_without_music.mp4", duration=get_audio_length("dirfile/music_file.mp3"))
+# video_audio_merge("dirfile/video_without_music.mp4", "dirfile/music_file.mp3")
+# folder_creation_with_song_name(str(song_title_created))
+# create_blank_mp4(f"video_final_output/{song_title_created}/{song_title_created}.mp4")
+# # create_lyrics_video_singular("output_video.mp4", "dirfile/lyrics_with_ts.lrc", f"video_final_output/{song_title_created}/{song_title_created}singular.mp4")
+# create_lyrics_video("output_video.mp4", "dirfile/lyrics_with_ts.lrc", f"video_final_output/{song_title_created}/{song_title_created}.mp4")
+# extract_thumbnail(f"video_final_output/{song_title_created}/{song_title_created}.mp4",f"video_final_output/{song_title_created}/{song_title_created}-thumbnail.jpg")
+# copying_raw_file(song_title_created)
 
