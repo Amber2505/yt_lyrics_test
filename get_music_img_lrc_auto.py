@@ -214,20 +214,37 @@ def getting_lrc_file():
     with open(lrc_filename, "w", encoding="utf-8") as file:
         file.writelines(lines)
 
-video_id_passed = input("Enter the youtube Video_id: ")
+# video_id_passed = input("Enter the youtube Video_id: ")
 # video_id_passed = "VcRc2DHHhoM"
-save_image_from_youtube(video_id_passed)
-download_youtube_music(video_id_passed)
-get_plain_lyrics(video_id_passed)
-getting_lrc_file()
-song_title_created = song_title('dirfile/lyrics_with_ts.lrc')
-create_video_from_image("dirfile/image_background.jpg", "dirfile/video_without_music.mp4", duration=get_audio_length("dirfile/music_file.mp3"))
-video_audio_merge("dirfile/video_without_music.mp4", "dirfile/music_file.mp3")
-folder_creation_with_song_name(str(song_title_created))
-create_blank_mp4(f"video_final_output/{song_title_created}/{song_title_created}.mp4")
-# create_lyrics_video_singular("output_video.mp4", "dirfile/lyrics_with_ts.lrc", f"video_final_output/{song_title_created}/{song_title_created}singular.mp4")
-create_lyrics_video("output_video.mp4", "dirfile/lyrics_with_ts.lrc", f"video_final_output/{song_title_created}/{song_title_created}.mp4")
-extract_thumbnail(f"video_final_output/{song_title_created}/{song_title_created}.mp4",f"video_final_output/{song_title_created}/{song_title_created}-thumbnail.jpg")
-copying_raw_file(song_title_created)
+video_id_list = [
+    "JNFO40e10CA",
+    "fuV4yQWdn_4",
+    "eVli-tstM5E",
+    "tQg5-6DHxQY",
+    "bbw4-yOszDc",
+    "JVDUsaqgSq0",
+    "GR3Liudev18",
+    "JSFG-IE8n_c",
+    "JQbjS0_ZfJ0",
+]
+
+for video_id_passed in video_id_list:
+    print(f"Processing video ID: {video_id_passed}")
+    save_image_from_youtube(video_id_passed)
+    download_youtube_music(video_id_passed)
+    get_plain_lyrics(video_id_passed)
+    getting_lrc_file()
+    song_title_created = song_title('dirfile/lyrics_with_ts.lrc')
+    create_video_from_image("dirfile/image_background.jpg", "dirfile/video_without_music.mp4", duration=get_audio_length("dirfile/music_file.mp3"))
+    video_audio_merge("dirfile/video_without_music.mp4", "dirfile/music_file.mp3")
+    folder_creation_with_song_name(str(song_title_created))
+    create_blank_mp4(f"video_final_output/{song_title_created}/{song_title_created}.mp4")
+    # create_lyrics_video_singular("output_video.mp4", "dirfile/lyrics_with_ts.lrc", f"video_final_output/{song_title_created}/{song_title_created}singular.mp4")
+    create_lyrics_video("output_video.mp4", "dirfile/lyrics_with_ts.lrc", f"video_final_output/{song_title_created}/{song_title_created}.mp4")
+    extract_thumbnail(f"video_final_output/{song_title_created}/{song_title_created}.mp4",f"video_final_output/{song_title_created}/{song_title_created}-thumbnail.jpg")
+    copying_raw_file(song_title_created)
+    print(f"Finished processing video ID: {video_id_passed}")
+
+print("All videos processed successfully!")
 
 
