@@ -7,8 +7,10 @@ import lyricsgenius
 import whisper
 import re
 from difflib import SequenceMatcher
+from yt_dlp import YoutubeDL
 from making_video_file import create_video_from_image, video_audio_merge, folder_creation_with_song_name, \
     create_blank_mp4, create_lyrics_video, extract_thumbnail, copying_raw_file, song_title, get_audio_length
+from practice import getting_artist_track_info_and_save
 
 GENIUS_API_KEY = "KT6XN3FHd0Hy1N8TmombJtgILOSEpW4-o-lXjpQBY4jNLngrnL0pvDzG7QVlBO8p"  # 🔹 Replace with your Genius API key
 genius = lyricsgenius.Genius(GENIUS_API_KEY)
@@ -38,7 +40,7 @@ def search_official_audio(video_id):
     video_url = f"https://www.youtube.com/watch?v={video_id}"
 
     # Get search results for the video title
-    with yt_dlp.YoutubeDL({'quiet': True}) as ydl:
+    with yt_dlp.YoutubeDL({'quiet': True, 'noplaylist': True}) as ydl:
         info = ydl.extract_info(video_url, download=False)
         search_query = info.get('title', '')
 
@@ -65,14 +67,11 @@ def download_youtube_music(video_url_id, output_path="dirfile/music_file"):
                 'preferredcodec': 'mp3',
                 'preferredquality': '192',
             }],
-            # 'outtmpl': f"{output_path}/%(title)s.%(ext)s",
             'outtmpl': f"{output_path}.%(ext)s",
-            'overwrites': True,  # ✅ Overwrites existing files
-            'nopostoverwrites': False,  # ✅ Ensures processing isn't skipped
+            'noplaylist': True,
         }
-
         video_url = f'https://www.youtube.com/watch?v={video_music_id_found}'
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        with YoutubeDL(ydl_opts) as ydl:
             ydl.download([video_url])
     else:
         print('No audio file (mp3) found')
@@ -82,7 +81,7 @@ def get_song_title(video_id):
     video_url = f"https://www.youtube.com/watch?v={video_id}"
     ydl_opts = {'quiet': True}
 
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+    with yt_dlp.YoutubeDL({'quiet': True, 'noplaylist': True}) as ydl:
         info = ydl.extract_info(video_url, download=False)
         return info.get('title', '')
 
@@ -104,7 +103,7 @@ def get_plain_lyrics(video_id):
     song_title = get_song_title(video_id)
     song_title = "".join(song_title).split('(')[0].strip()
 
-    print(f"🔍 Searching lyrics for: {song_title}")
+    # print(f"🔍 Searching lyrics for: {song_title}")
 
     lyrics = fetch_lyrics(song_title)
     cleaned_lyrics = clean_lyrics(lyrics)
@@ -137,10 +136,10 @@ def find_matching_segment(whisper_text, plain_words, start_idx):
 
 def getting_lrc_file():
     # Load Whisper model
-    model = whisper.load_model("small")
+    model = whisper.load_model("medium")
 
     # Transcribe the audio
-    result = model.transcribe("dirfile/music_file.mp3", verbose=False)
+    result = model.transcribe("dirfile/music_file.mp3", verbose=True)
 
     # Read and clean the plain lyrics file
     with open("dirfile/plain_lyrics.txt", "r", encoding="utf-8") as file:
@@ -216,24 +215,58 @@ def getting_lrc_file():
 
 # video_id_passed = input("Enter the youtube Video_id: ")
 # video_id_passed = "VcRc2DHHhoM"
+
 video_id_list = [
-    "JNFO40e10CA",
-    "fuV4yQWdn_4",
-    "eVli-tstM5E",
-    "tQg5-6DHxQY",
-    "bbw4-yOszDc",
-    "JVDUsaqgSq0",
-    "GR3Liudev18",
-    "JSFG-IE8n_c",
-    "JQbjS0_ZfJ0",
+    # "8ekJMC8OtGU", lyrics not matching
+    # "qN4nWpW1UMA", Lyrics not matching
+    # "KNtJGQkC-WI",
+    # "ffxKSjUwKdU",
+    # "eB6txyhHFG4",
+    "KwRxeZ9Ro24",
+    "euCqAq6BRa4",
+    "1KZ6l73sJ0A",
+    "x1XIJM6spaE",
+    "QYh6mYIJG2Y",
+    "XYAghEq5Lfw",
+    "tcYodQoapMg",
+    "SinDUMJmsCU",
+    "J_8xCOSekog",
+    "_sV0S8qWSy0",
+    "9WbCfHutDSE",
+    "leopt__ATR0",
+    "bhxhNIQBKJI",
+    "g5qU7p7yOY8",
+    "gl1aHhXnN1k",
+    "4bwnO0FQp1s",
+    "4LcNr0T2yAA",
+    "Io0fBr1XBUA",
+    "LH4Y1ZUUx2g",
+    "9SRxBTtspYM",
+    "SXiSVQZLje8",
+    "B6_iQvaIjXw",
+    "kOkQ4T5WO9E",
+    "BPgEgaPk62M",
+    "kHLHSlExFis",
+    "nfWlot6h_JM",
+    "1ekZEVeXwek",
+    "G7KNmW9a75Y",
+    "y2nu8zpVBmY",
+    "CXBFU97X61I",
+    "q_48vyHWls4",
+    "5UE2kT5LxE0",
+    "SIyZNMqT4RE",
+    "B783S7tAPOY",
+    "nJG5CWsne8E"
 ]
 
 for video_id_passed in video_id_list:
     print(f"Processing video ID: {video_id_passed}")
     save_image_from_youtube(video_id_passed)
     download_youtube_music(video_id_passed)
-    get_plain_lyrics(video_id_passed)
-    getting_lrc_file()
+    # get_plain_lyrics(video_id_passed)
+    # getting_lrc_file()
+    video_id = search_official_audio(video_id_passed)
+    getting_artist_track_info_and_save(video_id) #getting lrc
     song_title_created = song_title('dirfile/lyrics_with_ts.lrc')
     create_video_from_image("dirfile/image_background.jpg", "dirfile/video_without_music.mp4", duration=get_audio_length("dirfile/music_file.mp3"))
     video_audio_merge("dirfile/video_without_music.mp4", "dirfile/music_file.mp3")

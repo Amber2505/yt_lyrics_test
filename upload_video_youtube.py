@@ -182,15 +182,18 @@ def getting_artist_and_song_name_for_hashtag(song_name):
 
 if __name__ == "__main__":
     youtube = authenticate()
+    video_mp4_path = "video_final_output/Chappell Roan - Pink Pony Club (Lyrics)/Chappell Roan - Pink Pony Club (Lyrics).mp4"
+    lrc_file_path = "video_final_output/Chappell Roan - Pink Pony Club (Lyrics)/Chappell Roan - Pink Pony Club (Lyrics).lrc"
+    thumbnail_path = "video_final_output/Chappell Roan - Pink Pony Club (Lyrics)/Chappell Roan - Pink Pony Club (Lyrics)-thumbnail.jpg"
 
     # Set video details
     # file_path = "dirfile/video_without_music.mp4"
-    file_path = "video_final_output/Selena Gomez, benny blanco - Sunset Blvd (Lyrics)/Selena Gomez, benny blanco - Sunset Blvd (Lyrics).mp4"
-    title = song_title('video_final_output/Selena Gomez, benny blanco - Sunset Blvd (Lyrics)/Selena Gomez, benny blanco - Sunset Blvd (Lyrics).lrc')
+    file_path = video_mp4_path
+    title = song_title(lrc_file_path)
     # create a txt file that could further be used to copy and
     # past the lyrics without the time stamps as well as the tags should be created on top of the lyrics
     hashtag_generate = getting_artist_and_song_name_for_hashtag(title)
-    convert_lrc_to_txt("video_final_output/Selena Gomez, benny blanco - Sunset Blvd (Lyrics)/Selena Gomez, benny blanco - Sunset Blvd (Lyrics).lrc", "dirfile/plain_lyrics.txt", hashtag_generate)
+    convert_lrc_to_txt(lrc_file_path, "dirfile/plain_lyrics.txt", hashtag_generate)
     # Read description from the text file
     description_file_path = "dirfile/plain_lyrics.txt"  # Replace with your actual file path
     with open(description_file_path, "r", encoding="utf-8") as file:
@@ -207,7 +210,7 @@ if __name__ == "__main__":
     # have to change this to public instead
     privacy_status = "public"
     made_for_kids = False  # Change to True if it's made for kids
-    thumbnail_path = "video_final_output/Selena Gomez, benny blanco - Sunset Blvd (Lyrics)/Selena Gomez, benny blanco - Sunset Blvd (Lyrics).jpg"
+    thumbnail_path = thumbnail_path
 
     # Upload the video
     upload_video(youtube, file_path, title, description, tags, privacy_status, made_for_kids, thumbnail_path)

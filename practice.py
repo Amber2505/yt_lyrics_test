@@ -127,6 +127,10 @@
 #                 outfile.write(clean_line + "\n")
 
 '''removing the extra space in the beginning and adding  2 lines after the title in the oplain_lyrics.txt file'''
+import requests
+import yt_dlp
+from ytmusicapi import YTMusic
+
 # import aeneas
 
 # import re
@@ -1018,90 +1022,210 @@
 #     # Print formatted timestamp and Whisper lyrics
 #     print(f"{formatted_time} {whisper_lyrics}")
 
+# import re
+# import whisper
+# import re
+# from difflib import SequenceMatcher
+#
+# # Function to find the best matching segment in plain lyrics
+# def find_matching_segment(whisper_text, plain_words, start_idx):
+#     whisper_words = whisper_text.lower().split()
+#     best_match = None
+#     best_ratio = 0
+#     best_end_idx = start_idx
+#
+#     # Search within a reasonable window of words
+#     # window_size = len(whisper_words) * 2
+#     for i in range(start_idx, min(start_idx + 50, len(plain_words) - len(whisper_words) + 1)):
+#         candidate = " ".join(plain_words[i:i + len(whisper_words)])
+#         ratio = SequenceMatcher(None, whisper_text.lower(), candidate.lower()).ratio()
+#         if ratio > best_ratio and ratio > 0.5:  # Threshold for a decent match
+#             best_ratio = ratio
+#             best_match = candidate
+#             best_end_idx = i + len(whisper_words)
+#
+#     return best_match, best_end_idx
+#
+# def getting_lrc_file():
+#     # Load Whisper model
+#     model = whisper.load_model("small")
+#
+#     # Transcribe the audio
+#     result = model.transcribe("dirfile/music_file.mp3", verbose=False)
+#
+#     # Read and clean the plain lyrics file
+#     with open("dirfile/plain_lyrics.txt", "r", encoding="utf-8") as file:
+#         lyrics_lines = [line.strip() for line in file.readlines() if line.strip()]
+#
+#     if len(lyrics_lines) > 2:
+#         lyrics_lines = lyrics_lines[1:-1]
+#
+#     plain_lyrics_string = " ".join(lyrics_lines)
+#     plain_lyrics_words = plain_lyrics_string.split()
+#
+#     # Whisper outputs (sorted by timestamp)
+#     segments = sorted(result["segments"], key=lambda x: x["start"])
+#
+#     # Split plain lyrics to match Whisper segments
+#     split_lyrics = []
+#     current_idx = 0
+#     aligned_lyrics = []
+#
+#     for segment in segments:
+#         start_time = segment["start"]
+#         minutes = int(start_time // 60)
+#         seconds = int(start_time % 60)
+#         milliseconds = int((start_time % 1) * 100)
+#         formatted_time = f"[{minutes:02d}:{seconds:02d}.{milliseconds:02d}]"
+#
+#         whisper_lyrics = segment["text"].strip()
+#
+#         # Find the matching segment in plain lyrics
+#         matched_segment, new_idx = find_matching_segment(whisper_lyrics, plain_lyrics_words, current_idx)
+#
+#         if matched_segment:
+#             split_lyrics.append((formatted_time, matched_segment))
+#             current_idx = new_idx
+#         else:
+#             # If no match found, use the Whisper text as fallback and advance minimally
+#             split_lyrics.append((formatted_time, whisper_lyrics))
+#             current_idx += len(whisper_lyrics.split())
+#
+#     # Output the results
+#     for timestamp, lyrics in split_lyrics:
+#         print("time stamp")
+#         print(f"{timestamp} {lyrics}")
+#         aligned_lyrics.append(f"{timestamp} {lyrics}")
+#
+#     with open('dirfile/plain_lyrics.txt', 'r', encoding='utf-8') as file:
+#         first_line = file.readline().strip()
+#         print(first_line)
+#
+#
+#     lrc_filename = "dirfile/lyrics_with_ts.lrc"
+#     with open(lrc_filename, "w", encoding="utf-8") as out_file:
+#         out_file.write(f"[00:00.00] {first_line}\n")
+#         out_file.write("\n".join(aligned_lyrics))
+#
+#     with open(lrc_filename, "r", encoding="utf-8") as file:
+#         lines = file.readlines()
+#
+#     count = 0
+#     for i in range(len(lines)):
+#         if "[00:00.00]" in lines[i]:
+#             count += 1
+#             if count == 2:  # Modify the second occurrence
+#                 lines[i] = lines[i].replace("[00:00.00]", "[00:00.01]", 1)
+#                 break  # Stop after modifying the second occurrence
+#     if lines:
+#         match = re.match(r"(\[.*?\]) (.*)", lines[-1].strip())  # Extract timestamp if present
+#         timestamp, _ = match.groups()
+#         lines[-1] = f"{timestamp} By Video Junkie\n"  # Preserve timestamp
+#
+#     with open(lrc_filename, "w", encoding="utf-8") as file:
+#         file.writelines(lines)
+#
+# getting_lrc_file()
+
+
+'''using lrc api to get lrc files'''
+
+import googleapiclient.discovery
+import googleapiclient.errors
 import re
-import whisper
-import re
-from difflib import SequenceMatcher
+import isodate
 
-# Function to find the best matching segment in plain lyrics
-def find_matching_segment(whisper_text, plain_words, start_idx):
-    whisper_words = whisper_text.lower().split()
-    best_match = None
-    best_ratio = 0
-    best_end_idx = start_idx
+# Replace with your actual API key
+API_KEY = "AIzaSyBTK7JvwtqxPbLjDBHdd9Ud28DofGXu0-Q"
 
-    # Search within a reasonable window of words
-    # window_size = len(whisper_words) * 2
-    for i in range(start_idx, min(start_idx + 50, len(plain_words) - len(whisper_words) + 1)):
-        candidate = " ".join(plain_words[i:i + len(whisper_words)])
-        ratio = SequenceMatcher(None, whisper_text.lower(), candidate.lower()).ratio()
-        if ratio > best_ratio and ratio > 0.5:  # Threshold for a decent match
-            best_ratio = ratio
-            best_match = candidate
-            best_end_idx = i + len(whisper_words)
 
-    return best_match, best_end_idx
+def get_youtube_video_info(video_id):
+    # Build the YouTube API client
+    youtube = googleapiclient.discovery.build("youtube", "v3", developerKey=API_KEY)
 
-def getting_lrc_file():
-    # Load Whisper model
-    model = whisper.load_model("small")
+    try:
+        # Request video details including contentDetails
+        request = youtube.videos().list(
+            part="snippet,contentDetails",
+            id=video_id
+        )
+        response = request.execute()
 
-    # Transcribe the audio
-    result = model.transcribe("dirfile/music_file.mp3", verbose=False)
+        if response["items"]:
+            video = response["items"][0]
+            snippet = video["snippet"]
+            content_details = video["contentDetails"]
 
-    # Read and clean the plain lyrics file
-    with open("dirfile/plain_lyrics.txt", "r", encoding="utf-8") as file:
-        lyrics_lines = [line.strip() for line in file.readlines() if line.strip()]
+            track_name = snippet["title"]
+            channel_name = snippet["channelTitle"]
+            description = snippet["description"]
 
-    if len(lyrics_lines) > 2:
-        lyrics_lines = lyrics_lines[1:-1]
+            # Try to extract artist from "Associated Performer" in description
+            artist_match = re.search(r"Associated Performer: (.+?)(?:\n|$)", description)
+            artist_name = artist_match.group(1).strip() if artist_match else None
 
-    plain_lyrics_string = " ".join(lyrics_lines)
-    plain_lyrics_words = plain_lyrics_string.split()
+            # Fallback: Parse title for "Artist - Song" format
+            if not artist_name and " - " in track_name:
+                potential_artist, potential_track = track_name.split(" - ", 1)
+                artist_name = potential_artist.strip()
+                track_name = potential_track.strip()
 
-    # Whisper outputs (sorted by timestamp)
-    segments = sorted(result["segments"], key=lambda x: x["start"])
+            # Final fallback: Use channel name
+            if not artist_name:
+                artist_name = channel_name
 
-    # Split plain lyrics to match Whisper segments
-    split_lyrics = []
-    current_idx = 0
-    aligned_lyrics = []
+            # Parse duration from ISO 8601 format to seconds
+            duration_iso = content_details["duration"]
+            duration_seconds = int(isodate.parse_duration(duration_iso).total_seconds())
 
-    for segment in segments:
-        start_time = segment["start"]
-        minutes = int(start_time // 60)
-        seconds = int(start_time % 60)
-        milliseconds = int((start_time % 1) * 100)
-        formatted_time = f"[{minutes:02d}:{seconds:02d}.{milliseconds:02d}]"
-
-        whisper_lyrics = segment["text"].strip()
-
-        # Find the matching segment in plain lyrics
-        matched_segment, new_idx = find_matching_segment(whisper_lyrics, plain_lyrics_words, current_idx)
-
-        if matched_segment:
-            split_lyrics.append((formatted_time, matched_segment))
-            current_idx = new_idx
+            return {
+                "track_name": track_name,
+                "artist_name": artist_name,
+                "duration_seconds": duration_seconds,
+                "description": description
+            }
         else:
-            # If no match found, use the Whisper text as fallback and advance minimally
-            split_lyrics.append((formatted_time, whisper_lyrics))
-            current_idx += len(whisper_lyrics.split())
+            return "No video found with that ID"
 
-    # Output the results
-    for timestamp, lyrics in split_lyrics:
-        print("time stamp")
-        print(f"{timestamp} {lyrics}")
-        aligned_lyrics.append(f"{timestamp} {lyrics}")
+    except googleapiclient.errors.HttpError as e:
+        return f"Error: {str(e)}"
 
-    with open('dirfile/plain_lyrics.txt', 'r', encoding='utf-8') as file:
-        first_line = file.readline().strip()
-        print(first_line)
+def search_official_audio(video_id):
+    """Search YouTube Music for the official audio of a given video."""
+    ytmusic = YTMusic()  # Initialize API without authentication
+    video_url = f"https://www.youtube.com/watch?v={video_id}"
 
+    # Get search results for the video title
+    with yt_dlp.YoutubeDL({'quiet': True}) as ydl:
+        info = ydl.extract_info(video_url, download=False)
+        search_query = info.get('title', '')
 
+    print(f"🔍 Searching for: {search_query}")
+
+    # Search for the official song on YouTube Music
+    search_results = ytmusic.search(search_query, filter="songs")
+    if search_results:
+        print(search_results[0]['videoId'])
+        return search_results[0]['videoId']  # Return the first result (most relevant)
+
+    print("⚠️ No official audio found.")
+
+def clean_synced_lyrics(synced_lyrics):
+    # Split lyrics into lines and filter out blank lines with timestamps
+    lines = synced_lyrics.split('\n')
+    cleaned_lines = []
+    for line in lines:
+        # Match lines with timestamp (e.g., [mm:ss.xx]) and check if content is empty or whitespace
+        match = re.match(r'^\[(\d{2}:\d{2}\.\d{2})\]\s*$', line.strip())
+        if not match:  # Keep lines that aren't just a timestamp with no content
+            cleaned_lines.append(line)
+    return '\n'.join(cleaned_lines)
+
+def writing_in_lrc_file(first_line, remaining_lyrics):
     lrc_filename = "dirfile/lyrics_with_ts.lrc"
     with open(lrc_filename, "w", encoding="utf-8") as out_file:
         out_file.write(f"[00:00.00] {first_line}\n")
-        out_file.write("\n".join(aligned_lyrics))
+        out_file.write(remaining_lyrics)
 
     with open(lrc_filename, "r", encoding="utf-8") as file:
         lines = file.readlines()
@@ -1113,12 +1237,99 @@ def getting_lrc_file():
             if count == 2:  # Modify the second occurrence
                 lines[i] = lines[i].replace("[00:00.00]", "[00:00.01]", 1)
                 break  # Stop after modifying the second occurrence
+
     if lines:
-        match = re.match(r"(\[.*?\]) (.*)", lines[-1].strip())  # Extract timestamp if present
-        timestamp, _ = match.groups()
-        lines[-1] = f"{timestamp} By Video Junkie\n"  # Preserve timestamp
+        match = re.match(r"(\[.*?\])\s?(.*)", lines[-1].strip())  # Extract timestamp dynamically
+        if match:
+            timestamp, _ = match.groups()
+            lines[-1] = f"{timestamp} By Video Junkie\n"  # Preserve the dynamic timestamp
+        else:
+            print("No valid timestamp found in the last line.")
+
+    # Clean blank lines AFTER adding "By Video Junkie"
+    cleaned_content = clean_synced_lyrics(''.join(lines))
 
     with open(lrc_filename, "w", encoding="utf-8") as file:
-        file.writelines(lines)
+        file.writelines(cleaned_content)
 
-getting_lrc_file()
+    print("LRC file successfully written!")
+
+
+def getting_lrc_json_from_api(track_name, artist_name, duration):
+    url = "https://lrclib.net/api/search"
+    params = {
+        "track_name": track_name,
+        "artist_name": artist_name,
+        "duration": duration
+    }
+
+    response = requests.get(url, params=params)
+
+    if response.status_code == 200:
+        data = response.json()
+        matching_results = [item for item in data if item.get("duration") == duration]
+
+        if matching_results:
+            print(matching_results[0])  # Print first matching result
+            print(matching_results[0]['syncedLyrics'])
+            lrc_api_synced_lyrics = matching_results[0]['syncedLyrics']
+            if lrc_api_synced_lyrics is not None:
+                first_line = f"{artist_name} - {track_name} (Lyrics)"
+                writing_in_lrc_file(first_line, lrc_api_synced_lyrics)
+            else:
+                # Filter out exact matches and find closest non-exact duration
+                non_exact_data = [item for item in data if item.get("duration") != duration]
+                if not non_exact_data:
+                    print("\nNo non-exact duration results available.")
+                    return
+
+                closest_result = min(non_exact_data, key=lambda x: abs(x.get("duration", float('inf')) - duration))
+                duration_diff = abs(closest_result["duration"] - duration)
+                print(f"\nClosest non-exact match found (diff: {duration_diff:.3f}s):")
+                print(closest_result)
+                # print("\nSynced Lyrics:")
+                # print(closest_result['syncedLyrics'])
+                if closest_result['syncedLyrics']:
+                    first_line = f"{artist_name} - {track_name} (Lyrics)"
+                    writing_in_lrc_file(first_line, closest_result['syncedLyrics'])
+                else:
+                    print("No results available to compare.")
+                    return
+        else:
+            # No exact match, find closest duration
+            if not data:
+                print("No results available to compare.")
+                return
+
+            closest_result = min(data, key=lambda x: abs(x.get("duration", float('inf')) - duration))
+            duration_diff = abs(closest_result["duration"] - duration)
+            print(f"\nNo exact match found for duration {duration}. Closest match (diff: {duration_diff:.3f}s):")
+            print(closest_result)
+            print("\nSynced Lyrics:")
+            print(closest_result['syncedLyrics'])
+            first_line = f"{artist_name} - {track_name} (Lyrics)"
+            writing_in_lrc_file(first_line, closest_result['syncedLyrics'])
+    else:
+        print(f"Error: {response.status_code}")
+
+
+def getting_artist_track_info_and_save(video_id):
+    result = get_youtube_video_info(video_id)
+    track_name = result['track_name']
+    artist_name = result['artist_name']
+    duration = result['duration_seconds']
+    print(track_name)
+    print(artist_name)
+    if '- Topic' in artist_name:
+        artist_name = "".join(artist_name).split('-')[0].strip()
+        print(artist_name)
+    print(duration)
+    getting_lrc_json_from_api(track_name, artist_name, duration)
+
+
+# video_id = "UyAKpowkUDA"
+# video_id = search_official_audio(video_id)
+# getting_artist_track_info_and_save(video_id)
+
+
+# search_official_audio('b1aBzAE-IFY')
